@@ -1,0 +1,12 @@
+discovery-url: https://keycloak.civilservice.digital:8443/auth/realms/ags
+client-id: notify-test
+client-secret: secret
+listen: :8080
+enable-refresh-token: true
+redirection-url: https://kc-proxy.cloudapps.digital
+encryption-key: secret
+upstream-url: https://sue-my-brother-kc-proxy.cloudapps.digital
+resources:
+- uri: /login
+  methods:
+  - GET

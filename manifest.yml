@@ -1,0 +1,5 @@
+---
+applications:
+  - name: kc-proxy
+    buildpack: go_buildpack
+    memory: 128M
