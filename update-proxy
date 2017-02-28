@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# TODO:
+# Need to test if condition for gateway branch already exists as it is then not needed
+# Detect if Nginx restart fails and then restore Nginx conf backup and log error
+
+ssh -o StrictHostKeyChecking=no -Ti ${PEM_FILE} ${SERVER} <<-ENDSSH
+
+sudo sed -f -<<SED /etc/nginx/sites-available/proxysite > /home/ubuntu/proxysite-${GATEWAY_BRANCH}.tmp
+s/# Default gateway proxy/\
+if ( \\\$arg_redirect_uri ~ \
+https%3A%2F%2F${CF_APPNAME}.cloudapps.digital%2Foauth%2Fcallback ) {\n\
+#s#s#sreturn 302 https:\/\/ags-gateway-proxied-${GATEWAY_BRANCH}.cloudapps.digital\/auth?\
+\\\$query_string\&px=\\\$scheme:\/\/\\\$http_host\\\$uri;\n\
+#s#s#sbreak;\n#s#s}\
+\n\n#s#s# Default gateway proxy/
+SED
+
+# replace #s tokens with spaces to make Nginx conf human readable
+sudo sed -i 's/#s/        /g' /home/ubuntu/proxysite-${GATEWAY_BRANCH}.tmp
+
+# backup existing Nginx conf file
+sudo cp /etc/nginx/sites-available/proxysite /home/ubuntu/proxysite-${GATEWAY_BRANCH}.bak
+
+# replace existing Nginx conf file with one created, tmp file left in place so that diff available
+sudo cp /home/ubuntu/proxysite-${GATEWAY_BRANCH}.tmp /etc/nginx/sites-available/proxysite
+
+sudo service nginx restart
+
+exit
+ENDSSH

@@ -1,4 +1,4 @@
-discovery-url: https://keycloak.civilservice.digital:8443/auth/realms/ags
+discovery-url: http://gateway.civilservice.digital/auth/realms/ags
 client-id: notify-test
 client-secret: secret
 listen: :8080

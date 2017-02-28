@@ -1,0 +1,36 @@
+#!/bin/bash
+set -e
+
+export CF_HOME="$(mktemp -d)"
+rm -r "$CF_HOME" || true
+
+cf api https://api.cloud.service.gov.uk
+
+cf auth "$CF_USER" "$CF_PASSWORD"
+
+cf target -o $ORG -s $SPACE
+
+if [ "$CF_APPNAME" ]; then
+    echo "Setting CF_APPNAME "$CF_APPNAME
+    sed -i 's/redirection-url: https:\/\/kc-proxy/redirection-url: https:\/\/'$CF_APPNAME'/g' keycloak-proxy.config.yml
+fi
+if [ "$SMB_NAME" ]; then
+    echo "Setting SMB_NAME "$SMB_NAME
+    sed -i 's/upstream-url: https:\/\/sue-my-brother-kc-proxy/upstream-url: https:\/\/'$SMB_NAME'/g' keycloak-proxy.config.yml
+fi
+
+cat << EOF >> manifest.yml
+  env:
+    PROXY_CLIENT_ID: ${PROXY_CLIENT_ID}
+    PROXY_CLIENT_SECRET: ${PROXY_CLIENT_SECRET}
+EOF
+
+echo "Pushing to PaaS"
+
+cf push $CF_APPNAME
+
+echo "Trimming manifest.yml"
+
+head -n 5 manifest.yml > temp.yml ; mv temp.yml manifest.yml
+
+cf logout
